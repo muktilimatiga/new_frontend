@@ -289,5 +289,6 @@ function GeographicMaps() {
 }
 
 export const Route = createFileRoute('/geographic-maps')({
+  ssr: false, // Add this here too
   component: GeographicMaps,
 })
