@@ -36,15 +36,15 @@ function NetworkTopology() {
         exportPadding: 10,
       })
       
-      if (svg) {
-        const blob = new Blob([svg], { type: 'image/svg+xml' })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = 'network-topology.svg'
-        link.click()
-        URL.revokeObjectURL(url)
-      }
+      // Convert SVG element to string for Blob
+      const svgString = new XMLSerializer().serializeToString(svg)
+      const blob = new Blob([svgString], { type: 'image/svg+xml' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'network-topology.svg'
+      link.click()
+      URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Failed to export SVG:', error)
     }

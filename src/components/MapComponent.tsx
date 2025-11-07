@@ -1,7 +1,23 @@
-import { useEffect, useState } from 'react'
 import type { Customer } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+
+// Import react-leaflet components directly at the top
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+import L from 'leaflet'
+
+// Import Leaflet's CSS
+import 'leaflet/dist/leaflet.css'
+
+// Fix Leaflet's default icon
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
+})
+
 
 interface MapComponentProps {
   customers: Array<Customer>
@@ -10,67 +26,22 @@ interface MapComponentProps {
 }
 
 export function MapComponent({ customers, onCustomerClick, getServiceTypeColor }: MapComponentProps) {
-  const [isClient, setIsClient] = useState(false)
-  const [MapContainer, setMapContainer] = useState<any>(null)
-  const [Marker, setMarker] = useState<any>(null)
-  const [Popup, setPopup] = useState<any>(null)
-  const [TileLayer, setTileLayer] = useState<any>(null)
-  const [L, setL] = useState<any>(null)
-
-  useEffect(() => {
-    setIsClient(true)
-    
-    // Only import Leaflet on the client side
-    if (typeof window !== 'undefined') {
-      const loadLeaflet = async () => {
-        try {
-          const leafletModule = await import('leaflet')
-          const reactLeafletModule = await import('react-leaflet')
-          await import('leaflet/dist/leaflet.css')
-          
-          // Fix for TypeScript with Leaflet
-          delete (leafletModule.default.Icon.Default.prototype as any)._getIconUrl
-          leafletModule.default.Icon.Default.mergeOptions({
-            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-          })
-          
-          setMapContainer(() => reactLeafletModule.MapContainer)
-          setMarker(() => reactLeafletModule.Marker)
-          setPopup(() => reactLeafletModule.Popup)
-          setTileLayer(() => reactLeafletModule.TileLayer)
-          setL(() => leafletModule.default)
-        } catch (error) {
-          console.error('Failed to load Leaflet:', error)
-        }
-      }
-      
-      loadLeaflet()
-    }
-  }, [])
-
-  if (!isClient || !MapContainer || !Marker || !Popup || !TileLayer || !L) {
-    return <div className="flex items-center justify-center h-[500px] bg-gray-100">Loading map...</div>
-  }
-
-  const MapComp = MapContainer
-  const MarkerComp = Marker
-  const PopupComp = Popup
-  const TileLayerComp = TileLayer
+  // All the dynamic loading logic has been removed.
+  // We just return the map JSX.
 
   return (
     <div style={{ height: '500px', width: '100%' }}>
-      <MapComp
+      <MapContainer
         center={[40.7128, -74.0060]}
         zoom={5}
         style={{ height: '100%', width: '100%' }}
       >
-        <TileLayerComp
+        <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {customers.map((customer) => (
-          <MarkerComp
+          <Marker
             key={customer.id}
             position={[customer.location.coordinates[0], customer.location.coordinates[1]]}
             icon={L.divIcon({
@@ -99,7 +70,7 @@ export function MapComponent({ customers, onCustomerClick, getServiceTypeColor }
               click: () => onCustomerClick(customer),
             }}
           >
-            <PopupComp>
+            <Popup>
               <div className="p-3 min-w-[200px]">
                 <h3 className="font-semibold text-lg mb-2">{customer.name}</h3>
                 <div className="space-y-2">
@@ -141,10 +112,10 @@ export function MapComponent({ customers, onCustomerClick, getServiceTypeColor }
                   </Button>
                 </div>
               </div>
-            </PopupComp>
-          </MarkerComp>
+            </Popup>
+          </Marker>
         ))}
-      </MapComp>
+      </MapContainer>
     </div>
   )
 }

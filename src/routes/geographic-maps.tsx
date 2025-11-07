@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Suspense, lazy, useState } from 'react'
+import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import type { Customer } from '@/types'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
+// Import MapComponent directly
+import { MapComponent } from '@/components/MapComponent'
 
 // Mock data for demonstration
 const mockCustomers: Array<Customer> = [
@@ -91,9 +94,6 @@ const mockCustomers: Array<Customer> = [
     updatedAt: new Date('2024-01-08'),
   },
 ]
-
-// Lazy load the MapComponent to avoid SSR issues with Leaflet
-const MapComponent = lazy(() => import('@/components/MapComponent').then(mod => ({ default: mod.MapComponent })))
 
 function GeographicMaps() {
   const [selectedServiceType, setSelectedServiceType] = useState<string>('all')
@@ -200,13 +200,12 @@ function GeographicMaps() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Suspense fallback={<div className="flex items-center justify-center h-[500px] bg-gray-100">Loading map...</div>}>
-            <MapComponent
-              customers={filteredCustomers}
-              onCustomerClick={handleCustomerClick}
-              getServiceTypeColor={getServiceTypeColor}
-            />
-          </Suspense>
+          {/* Render MapComponent directly, without Suspense */}
+          <MapComponent
+            customers={filteredCustomers}
+            onCustomerClick={handleCustomerClick}
+            getServiceTypeColor={getServiceTypeColor}
+          />
         </CardContent>
       </Card>
 
@@ -289,6 +288,6 @@ function GeographicMaps() {
 }
 
 export const Route = createFileRoute('/geographic-maps')({
-  ssr: false, // Add this here too
+  ssr: false, // This is correct and still needed
   component: GeographicMaps,
 })
