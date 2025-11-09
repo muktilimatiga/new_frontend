@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  ChevronDown,
   Database,
   LayoutDashboard,
   Map,
@@ -10,6 +9,7 @@ import {
   Network,
   Plus,
   Search,
+  Settings2,
   Sun,
   Terminal,
   Ticket,
@@ -27,6 +27,7 @@ import {
 } from './ui/dropdown-menu'
 import { Input } from './ui/input'
 import { Theme, useTheme } from '@/hooks/use-theme'
+import { NewConfig } from '@/components/pop-up/new-config'
 
 interface CSMHeaderProps {
   onQuickAction?: (action: string) => void
@@ -36,6 +37,7 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { theme, setTheme } = useTheme()
+  const [isNewConfigOpen, setIsNewConfigOpen] = useState(false)
 
   const handleQuickAction = (action: string) => {
     if (onQuickAction) {
@@ -154,11 +156,7 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
               {getThemeIcon()}
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="CLI Access"
-            >
+            <Button variant="ghost" size="icon" aria-label="CLI Access">
               <Terminal className="h-4 w-4" />
             </Button>
 
@@ -182,7 +180,6 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
         </div>
       </header>
 
-      {/* Quick Actions Sidebar */}
       <div
         className={`fixed inset-y-0 right-0 z-50 w-80 bg-background shadow-lg transform transition-transform duration-300 ease-in-out ${
           isQuickActionsOpen ? 'translate-x-0' : 'translate-x-full'
@@ -199,6 +196,17 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
           </Button>
         </div>
         <div className="p-4 space-y-2">
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => {
+              setIsNewConfigOpen(true)
+              setIsQuickActionsOpen(false)
+            }}
+          >
+            <Settings2 className="mr-2 h-4 w-4" />
+            Configure ONT
+          </Button>
           <Button
             variant="outline"
             className="w-full justify-start"
@@ -242,7 +250,6 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
         </div>
       </div>
 
-      {/* Quick Search Overlay */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
           <div className="container flex h-16 items-center">
@@ -270,6 +277,8 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
           </div>
         </div>
       )}
+
+      <NewConfig open={isNewConfigOpen} onOpenChange={setIsNewConfigOpen} />
     </>
   )
 }

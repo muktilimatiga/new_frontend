@@ -14,6 +14,7 @@ import { Route as GeographicMapsRouteImport } from './routes/geographic-maps'
 import { Route as DatabaseManagementRouteImport } from './routes/database-management'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BroadbandSearchRouteImport } from './routes/broadband-search'
+import { Route as LoginPageRouteImport } from './routes/LoginPage'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo/table'
@@ -50,6 +51,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const BroadbandSearchRoute = BroadbandSearchRouteImport.update({
   id: '/broadband-search',
   path: '/broadband-search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginPageRoute = LoginPageRouteImport.update({
+  id: '/LoginPage',
+  path: '/LoginPage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -115,6 +121,7 @@ const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/LoginPage': typeof LoginPageRoute
   '/broadband-search': typeof BroadbandSearchRoute
   '/dashboard': typeof DashboardRoute
   '/database-management': typeof DatabaseManagementRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/LoginPage': typeof LoginPageRoute
   '/broadband-search': typeof BroadbandSearchRoute
   '/dashboard': typeof DashboardRoute
   '/database-management': typeof DatabaseManagementRoute
@@ -154,6 +162,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/LoginPage': typeof LoginPageRoute
   '/broadband-search': typeof BroadbandSearchRoute
   '/dashboard': typeof DashboardRoute
   '/database-management': typeof DatabaseManagementRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/LoginPage'
     | '/broadband-search'
     | '/dashboard'
     | '/database-management'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/LoginPage'
     | '/broadband-search'
     | '/dashboard'
     | '/database-management'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/LoginPage'
     | '/broadband-search'
     | '/dashboard'
     | '/database-management'
@@ -233,6 +245,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginPageRoute: typeof LoginPageRoute
   BroadbandSearchRoute: typeof BroadbandSearchRoute
   DashboardRoute: typeof DashboardRoute
   DatabaseManagementRoute: typeof DatabaseManagementRoute
@@ -286,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/broadband-search'
       fullPath: '/broadband-search'
       preLoaderRoute: typeof BroadbandSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/LoginPage': {
+      id: '/LoginPage'
+      path: '/LoginPage'
+      fullPath: '/LoginPage'
+      preLoaderRoute: typeof LoginPageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -377,6 +397,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginPageRoute: LoginPageRoute,
   BroadbandSearchRoute: BroadbandSearchRoute,
   DashboardRoute: DashboardRoute,
   DatabaseManagementRoute: DatabaseManagementRoute,

@@ -4,6 +4,7 @@ import * as TanstackQuery from './integrations/tanstack-query/root-provider'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
+import { getToken } from '@/api/auth'
 
 // Create a new router instance
 export const getRouter = () => {
@@ -11,7 +12,7 @@ export const getRouter = () => {
 
   const router = createRouter({
     routeTree,
-    context: { ...rqContext },
+    context: { ...rqContext, auth: { isAuthenticated: !!getToken() } },
     defaultPreload: 'intent',
     Wrap: (props: { children: React.ReactNode }) => {
       return (
