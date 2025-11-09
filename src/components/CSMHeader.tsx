@@ -28,6 +28,7 @@ import {
 import { Input } from './ui/input'
 import { Theme, useTheme } from '@/hooks/use-theme'
 import { NewConfig } from '@/components/pop-up/new-config'
+import {ReConfig} from '@/components/pop-up/re-config'
 
 interface CSMHeaderProps {
   onQuickAction?: (action: string) => void
@@ -38,6 +39,7 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const [isNewConfigOpen, setIsNewConfigOpen] = useState(false)
+  const [isReConfigOpen, setIsReConfigOpen] = useState(false)
 
   const handleQuickAction = (action: string) => {
     if (onQuickAction) {
@@ -210,10 +212,13 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
           <Button
             variant="outline"
             className="w-full justify-start"
-            onClick={() => handleQuickAction('new-ticket')}
+            onClick={() => {
+              setIsReConfigOpen(true)
+              setIsQuickActionsOpen(false)
+            }}
           >
             <Ticket className="mr-2 h-4 w-4" />
-            New Ticket
+            Config Ulang
           </Button>
           <Button
             variant="outline"
@@ -221,7 +226,7 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
             onClick={() => handleQuickAction('new-topology')}
           >
             <Network className="mr-2 h-4 w-4" />
-            New Topology
+            New Ticket
           </Button>
           <Button
             variant="outline"
@@ -279,6 +284,7 @@ export default function CSMHeader({ onQuickAction }: CSMHeaderProps) {
       )}
 
       <NewConfig open={isNewConfigOpen} onOpenChange={setIsNewConfigOpen} />
+      <ReConfig open={isReConfigOpen} onOpenChange={setIsReConfigOpen} />
     </>
   )
 }

@@ -32,12 +32,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Input } from '@/components/ui/input' // Added Input
 import {
   configureOnt,
   detectUnconfiguredOnts,
   getOptions,
-  getPSBData,
 } from '@/api/config'
+import { searchCustomerInDB, CustomerInDB } from '@/api/customer'
 import { useQuery, useMutation } from '@tanstack/react-query'
 
 interface NewConfigProps {
@@ -50,7 +51,7 @@ const initialFormState = {
   modemType: '',
 }
 
-export function NewConfig({
+export function ReConfig({
   children,
   open,
   onOpenChange,
@@ -63,6 +64,7 @@ export function NewConfig({
     null,
   )
   const [selectedData, setSelectData] = React.useState<DataPSB | null>(null)
+  const [searchQuery, setSearchQuery] = React.useState<string>('')
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState<string | null>(null)
   const [logs, setLogs] = React.useState<Array<string>>([])
@@ -93,11 +95,11 @@ export function NewConfig({
     },
   })
 
-  const optionsDataQuery = useQuery<Array<DataPSB>, Error>({
-    queryKey: ['psbData'],
-    queryFn: getPSBData,
-    enabled: isOpen,
-    staleTime: 1000 * 60 * 5,
+  // Replaced getPSBData with searchCustomerInDB query
+  const searchCustomerQuery = useQuery<Array<CustomerInDB>, Error>({
+    queryKey: ['customerSearch', searchQuery],
+    queryFn: () => searchCustomerInDB({ q: searchQuery }),
+    enabled: searchQuery.length > 2, // Only run query if search term is long enough
   })
 
   const configureOntMutation = useMutation<
@@ -119,6 +121,7 @@ export function NewConfig({
       setFormState(initialFormState)
       setLockAllEth(false)
       setSelectData(null)
+      setSearchQuery('')
     },
     onError: (err) => {
       setError(err.message)
@@ -150,6 +153,7 @@ export function NewConfig({
     setFormState(initialFormState)
     setLockAllEth(false)
     setSelectData(null)
+    setSearchQuery('')
     detectOntsMutation.reset()
     configureOntMutation.reset()
   }
@@ -161,15 +165,17 @@ export function NewConfig({
     detectOntsMutation.mutate(selectedOlt)
   }
 
-  const handleCustomerSelect = (customerUsername: string) => {
-    const customer = optionsDataQuery.data?.find(
-      (c) => c.username === customerUsername,
-    )
-    if (customer) {
-      setSelectData(customer)
-    } else {
-      setSelectData(null)
+  // Updated handler to accept a CustomerInDB object and map it to DataPSB
+  const handleCustomerSelect = (customer: CustomerInDB) => {
+    const psbData: DataPSB = {
+      name: customer.name,
+      address: customer.alamat,
+      username: customer.user_pppoe,
+      password: customer.pppoe_password,
+      paket: customer.paket,
     }
+    setSelectData(psbData)
+    setSearchQuery('') // Clear search input and hide results
   }
 
   const handleConfigure = () => {
@@ -217,10 +223,9 @@ export function NewConfig({
     </Button>
   )
 
-  const isLoading = optionsQuery.isLoading || optionsDataQuery.isLoading
-  const isError = optionsQuery.isError || optionsDataQuery.isError
-  const errorMessage =
-    optionsQuery.error?.message || optionsDataQuery.error?.message
+  const isLoading = optionsQuery.isLoading
+  const isError = optionsQuery.isError
+  const errorMessage = optionsQuery.error?.message
 
   const DataRow = ({ label, value }: { label: string; value?: string }) => (
     <div>
@@ -319,7 +324,7 @@ export function NewConfig({
                             Slot {ont.pon_slot}, Port {ont.pon_port}
                           </div>
                         </div>
-))}
+                      ))}
                     </div>
                   </div>
                 )}
@@ -337,29 +342,63 @@ export function NewConfig({
                       </div>
                     </div>
 
+                    {/* --- START: Search Block --- */}
                     <div>
-                      <Label htmlFor="psb-select" className="text-xs">
-                        Select Customer (from PSB)
+                      <Label htmlFor="psb-search" className="text-xs">
+                        Search Customer (from DB)
                       </Label>
-                      <Select
-                        value={selectedData?.username || ''}
-                        onValueChange={handleCustomerSelect}
-                      >
-                        <SelectTrigger className="h-8 mt-1">
-                          <SelectValue placeholder="Select PSB customer to auto-fill" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {optionsDataQuery.data?.map((psb) => (
-                            <SelectItem
-                              key={psb.username}
-                              value={psb.username || ''}
-                            >
-                              {psb.name} ({psb.username})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        id="psb-search"
+                        placeholder="Search by name, username, or SN..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value)
+                          setSelectData(null) // Clear data when starting a new search
+                        }}
+                        className="h-8 mt-1"
+                      />
+
+                      {searchQuery.length > 2 && !selectedData && (
+                        <div className="mt-2 border rounded p-2 max-h-40 overflow-y-auto space-y-1">
+                          {searchCustomerQuery.isLoading && (
+                            <div className="text-muted-foreground text-sm p-2 text-center">
+                              <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+                              Searching...
+                            </div>
+                          )}
+                          {searchCustomerQuery.isError && (
+                            <div className="text-destructive text-sm p-2 text-center">
+                              Error: {searchCustomerQuery.error.message}
+                            </div>
+                          )}
+                          {searchCustomerQuery.data && (
+                            <>
+                              {searchCustomerQuery.data.length === 0 ? (
+                                <div className="text-muted-foreground text-sm p-2 text-center">
+                                  No customers found.
+                                </div>
+                              ) : (
+                                searchCustomerQuery.data.map((customer) => (
+                                  <div
+                                    key={customer.user_pppoe}
+                                    className="p-2 border rounded cursor-pointer hover:bg-muted text-sm"
+                                    onClick={() => handleCustomerSelect(customer)}
+                                  >
+                                    <div className="font-medium">
+                                      {customer.name}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {customer.user_pppoe}
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
+                    {/* --- END: Search Block --- */}
 
                     <div className="grid grid-cols-2 gap-3">
                       <DataRow
@@ -432,7 +471,9 @@ export function NewConfig({
 
                     <Button
                       onClick={handleConfigure}
-                      disabled={configureOntMutation.isPending}
+                      disabled={
+                        configureOntMutation.isPending || !selectedData
+                      }
                       className="w-full h-8"
                     >
                       {configureOntMutation.isPending ? (
@@ -471,4 +512,4 @@ export function NewConfig({
   )
 }
 
-export default NewConfig
+export default ReConfig
