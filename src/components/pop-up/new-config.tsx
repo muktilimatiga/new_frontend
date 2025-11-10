@@ -23,7 +23,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Field, FieldLabel } from '@/components/ui/field'
+// Assuming Field and FieldLabel come from a file, but they weren't in your shadcn imports
+// If this causes an error, you may need to import them from the correct path.
+// import { Field, FieldLabel } from '@/components/ui/field'
 import { Switch } from '@/components/ui/switch'
 import {
   Select,
@@ -39,6 +41,48 @@ import {
   getPSBData,
 } from '@/api/config'
 import { useQuery, useMutation } from '@tanstack/react-query'
+
+// A simple Field component implementation in case you don't have one
+// You can delete this if 'Field' is imported from your UI library
+const Field = ({
+  children,
+  className,
+  orientation = 'vertical',
+}: {
+  children: React.ReactNode
+  className?: string
+  orientation?: 'vertical' | 'horizontal'
+}) => {
+  return (
+    <div
+      className={`flex ${
+        orientation === 'horizontal'
+          ? 'flex-row items-center'
+          : 'flex-col'
+      } ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+// A simple FieldLabel implementation
+// You can delete this if 'FieldLabel' is imported from your UI library
+const FieldLabel = ({
+  children,
+  htmlFor,
+  className,
+}: {
+  children: React.ReactNode
+  htmlFor?: string
+  className?: string
+}) => {
+  return (
+    <Label htmlFor={htmlFor} className={className}>
+      {children}
+    </Label>
+  )
+}
 
 interface NewConfigProps {
   children?: React.ReactNode
@@ -185,18 +229,22 @@ export function NewConfig({
       return
     }
 
+    // --- THIS IS THE FIX ---
+    // We add `|| ''` to satisfy the strict 'string' type
+    // required by the ConfigurationRequest.
     const request: ConfigurationRequest = {
       sn: selectedOnt.sn,
       customer: {
-        name: selectedData.name,
-        address: selectedData.address,
-        pppoe_user: selectedData.username,
-        pppoe_pass: selectedData.password,
+        name: selectedData.name || '',
+        address: selectedData.address || '',
+        pppoe_user: selectedData.username || '',
+        pppoe_pass: selectedData.password || '',
       },
       modem_type: modemType,
-      package: selectedData.paket,
+      package: selectedData.paket || '',
       eth_locks: [lockAllEth, lockAllEth, lockAllEth, lockAllEth],
     }
+    // --- END OF FIX ---
 
     setError(null)
     setSuccess(null)
@@ -222,7 +270,13 @@ export function NewConfig({
   const errorMessage =
     optionsQuery.error?.message || optionsDataQuery.error?.message
 
-  const DataRow = ({ label, value }: { label: string; value?: string }) => (
+  const DataRow = ({
+    label,
+    value,
+  }: {
+    label: string
+    value?: string | null
+  }) => (
     <div>
       <Label className="text-xs text-muted-foreground">{label}</Label>
       <div className="text-sm font-medium p-2 bg-muted rounded min-h-[32px] mt-1">
@@ -300,9 +354,7 @@ export function NewConfig({
 
                 {unconfiguredOnts.length > 0 && (
                   <div>
-                    <Label>
-                      Unconfigured ONTs ({unconfiguredOnts.length})
-                    </Label>
+                    <Label>Unconfigured ONTs ({unconfiguredOnts.length})</Label>
                     <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded p-2">
                       {unconfiguredOnts.map((ont) => (
                         <div
@@ -319,7 +371,7 @@ export function NewConfig({
                             Slot {ont.pon_slot}, Port {ont.pon_port}
                           </div>
                         </div>
-))}
+                      ))}
                     </div>
                   </div>
                 )}

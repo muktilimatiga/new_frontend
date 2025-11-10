@@ -1,36 +1,74 @@
-// --- In your api/customerApi.ts file (or similar) ---
-import { apiClient } from "./apiClient";
+// api/customer.ts
+// --- Import the generated types and functions ---
+import { getLexxadataCustomerScraperAPI } from './lexxadata'
+import type {
+  CustomerInDB as GeneratedCustomerInDB,
+  CustomerOnuDetail as GeneratedCustomerOnuDetail,
+  OnuStateRespons as GeneratedOnuStateRespons,
+  RebootResponse as GeneratedRebootResponse,
+  RebootRequest as GeneratedRebootRequest,
+  CustomerwithInvoices as GeneratedCustomerwithInvoices,
+  InvoiceItem as GeneratedInvoiceItem,
+} from './lexxadata'
 
-export interface CustomerInDB {
-  name: string
-  alamat: string
-  olt_name: string
-  onu_sn: string
-  pppoe_password: string
-  interface: string
-  onu_id:string
-  sheet:string
-  paket:string
-  user_pppoe: string
-  updated_at:string
+// --- Re-export the types ---
+export type {
+  GeneratedCustomerInDB as CustomerInDB,
+  GeneratedCustomerOnuDetail as CustomerOnuDetail,
+  GeneratedOnuStateRespons as OnuStateRespons,
+  GeneratedRebootResponse as RebootResponse,
+  GeneratedRebootRequest as RebootRequest,
+  GeneratedCustomerwithInvoices as CustomerwithInvoices,
+  GeneratedInvoiceItem as InvoiceItem,
 }
 
-export type SearchCustomerParams = {
-    q: string
+// --- Get the API functions ---
+const {
+  searchOrGetAllCustomersApiV1DataFiberGet,
+  getCustomerAndOltDetailsApiV1OnuDetailSearchGet,
+  getCustomerAndStateApiV1OnuOnuStateGet,
+  rebootOnuByPppoeApiV1OnuRebootOnuPost,
+  getFastCustomerDetailsApiV1CustomerInvoicesGet,
+} = getLexxadataCustomerScraperAPI()
+
+// --- Create your clean wrapper functions ---
+
+export const searchOrGetAllCustomers = async (
+  query?: string,
+): Promise<GeneratedCustomerInDB[]> => {
+  const params = { q: query || undefined }
+  const response = await searchOrGetAllCustomersApiV1DataFiberGet(params)
+  return response.data
 }
 
-const BASE = 'api/v1'
+export const getCustomerOnuDetail = async (
+  query: string,
+): Promise<GeneratedCustomerOnuDetail> => {
+  const response = await getCustomerAndOltDetailsApiV1OnuDetailSearchGet({
+    q: query,
+  })
+  return response.data
+}
 
-export const searchCustomerInDB = (
-  params?: SearchCustomerParams,
-): Promise<Array<CustomerInDB>> => {
-  
-  let url = `${BASE}/data_fiber/`
+export const getCustomerOnuState = async (
+  query: string,
+): Promise<GeneratedOnuStateRespons> => {
+  const response = await getCustomerAndStateApiV1OnuOnuStateGet({ q: query })
+  return response.data
+}
 
-  if (params) {
-    const queryString = new URLSearchParams(params).toString()
-    url += `?${queryString}`
-  }
+export const rebootCustomerOnu = async (
+  request: GeneratedRebootRequest,
+): Promise<GeneratedRebootResponse> => {
+  const response = await rebootOnuByPppoeApiV1OnuRebootOnuPost(request)
+  return response.data
+}
 
-  return apiClient.get<Array<CustomerInDB>>(url)
+export const getCustomerInvoices = async (
+  query: string,
+): Promise<GeneratedCustomerwithInvoices[]> => {
+  const response = await getFastCustomerDetailsApiV1CustomerInvoicesGet({
+    query,
+  })
+  return response.data
 }

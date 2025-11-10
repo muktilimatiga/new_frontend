@@ -1,84 +1,60 @@
-import { apiClient } from './apiClient'
+// api/config.ts
+// --- Import the generated types and functions ---
+import { getLexxadataCustomerScraperAPI } from './lexxadata'
+import type {
+  OptionsResponse as GeneratedOptionsResponse,
+  UnconfiguredOnt as GeneratedUnconfiguredOnt,
+  CustomerInfo as GeneratedCustomerInfo,
+  ConfigurationRequest as GeneratedConfigurationRequest,
+  ConfigurationResponse as GeneratedConfigurationResponse,
+  DataPSB as GeneratedDataPSB,
+} from './lexxadata'
 
-export interface OptionsResponse {
-  olt_options: Array<string>
-  modem_options: Array<string>
-  package_options: Array<string>
+// --- Re-export the types for your app to use ---
+export type {
+  GeneratedOptionsResponse as OptionsResponse,
+  GeneratedUnconfiguredOnt as UnconfiguredOnt,
+  GeneratedCustomerInfo as CustomerInfo,
+  GeneratedConfigurationRequest as ConfigurationRequest,
+  GeneratedConfigurationResponse as ConfigurationResponse,
+  GeneratedDataPSB as DataPSB,
 }
 
-export interface UnconfiguredOnt {
-  sn: string
-  pon_port: string
-  pon_slot: string
-}
+// --- Get the API functions from Orval ---
+const {
+  getOptionsApiV1ConfigApiOptionsGet,
+  detectUncfgOntsApiV1ConfigApiOltsOltNameDetectOntsGet,
+  runConfigurationApiV1ConfigApiOltsOltNameConfigurePost,
+  getPsbDataApiV1CustomerPsbGet,
+} = getLexxadataCustomerScraperAPI()
 
-export interface CustomerInfo {
-  name: string
-  address: string
-  pppoe_user: string
-  pppoe_pass: string
-}
+// --- Create your clean wrapper functions ---
 
-export interface ConfigurationRequest {
-  sn: string
-  customer: CustomerInfo
-  modem_type: string
-  package: string
-  eth_locks: Array<boolean>
-}
-
-export interface ConfigurationSummary {
-  serial_number: string
-  slot: number
-  port: number
-  onu_id: number
-  vlan: string
-  customer_name: string
-  customer_address: string
-  modem_type: string
-  package: string
-  status: string
-}
-
-export interface ConfigurationResponse {
-  message: string
-  summary: ConfigurationSummary
-  logs: Array<string>
-}
-
-export interface DataPSB {
-  name: string
-  address: string
-  username: string
-  password: string
-  paket: string
-
-}
-
-const BASE = '/api/v1/config'
-
-export async function getOptions(): Promise<OptionsResponse> {
-  return apiClient.get<OptionsResponse>(`${BASE}/api/options`)
+export async function getOptions(): Promise<GeneratedOptionsResponse> {
+  const response = await getOptionsApiV1ConfigApiOptionsGet()
+  return response.data
 }
 
 export async function detectUnconfiguredOnts(
   oltName: string,
-): Promise<Array<UnconfiguredOnt>> {
-  return apiClient.get<Array<UnconfiguredOnt>>(
-    `${BASE}/api/olts/${oltName}/detect-onts`,
-  )
+): Promise<Array<GeneratedUnconfiguredOnt>> {
+  const response =
+    await detectUncfgOntsApiV1ConfigApiOltsOltNameDetectOntsGet(oltName)
+  return response.data
 }
 
 export async function configureOnt(
   oltName: string,
-  request: ConfigurationRequest,
-): Promise<ConfigurationResponse> {
-  return apiClient.post<ConfigurationResponse>(
-    `${BASE}/api/olts/${oltName}/configure`,
+  request: GeneratedConfigurationRequest,
+): Promise<GeneratedConfigurationResponse> {
+  const response = await runConfigurationApiV1ConfigApiOltsOltNameConfigurePost(
+    oltName,
     request,
   )
+  return response.data
 }
 
-export async function getPSBData(): Promise<Array<DataPSB>> {
-  return apiClient.get<Array<DataPSB>>(`/api/v1/customer/psb`)
+export async function getPSBData(): Promise<Array<GeneratedDataPSB>> {
+  const response = await getPsbDataApiV1CustomerPsbGet()
+  return response.data
 }
